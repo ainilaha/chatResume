@@ -23,7 +23,7 @@
             type="textarea"
             style="width: 20rem"
             :autosize="{ minRows: 5, maxRows: 10 }"
-            placeholder="请输入json格式"
+            placeholder='请输入json格式，例如{"name":"LiHua","email":"lihua@my.com}'
           ></el-input>
         </el-col>
         <el-col class="mv-1">
@@ -37,7 +37,7 @@
             :auto-upload="false"
           >
             <template #trigger>
-              <el-button size="small" type="primary">选取文件填充 </el-button>
+              <el-button size="small" type="primary">选取文件填充</el-button>
             </template>
             <span class="ml-1">
               <el-text>{{ message }}</el-text>
@@ -47,10 +47,20 @@
       </div>
     </el-row>
     <el-divider />
-    <div>
-      <el-text>{{ cvResult }}</el-text>
-    </div>
-    <el-button @click="downloadCV">下载简历</el-button>
+    <el-row>
+      <div>
+        <el-input
+          v-model="cvResult"
+          type="textarea"
+          style="width: 20rem"
+          :autosize="{ minRows: 5, maxRows: 10 }"
+          placeholder="生成的简历会显示在此处"
+          readonly
+        ></el-input>
+      </div>
+    </el-row>
+    <el-button @click="generateCV" class="mt-1">生成简历</el-button>
+    <el-button @click="downloadCV" class="mt-1">下载简历</el-button>
   </div>
 </template>
 
@@ -58,6 +68,7 @@
 import { ref, reactive, Raw } from "vue";
 
 import type { UploadInstance, UploadUserFile } from "element-plus";
+import { ElNotification } from "element-plus";
 
 const upload = ref<UploadInstance>();
 
@@ -82,20 +93,33 @@ const changeDemoFile = (file: File | Raw<any>, demoFileList: void[]) => {
         demo.value = JSON.stringify(document);
         if (isJSON(demo.value)) {
           message.value = "满足json格式";
+          ElNotification.success({
+            title: "上传成功",
+            offset: 100,
+          });
         } else {
           message.value = "不满足json格式，请重新选择文件或修改文件";
           upload.value?.clearFiles();
           demo.value = "";
+          ElNotification.error({
+            title: "上传失败",
+            message: "文件不是json格式",
+            offset: 100,
+          });
         }
       } catch (err) {
         console.log(err);
         upload.value?.clearFiles();
         message.value = "不满足json格式，请重新选择文件或修改文件";
+        ElNotification.error({
+          title: "上传失败",
+          message: "文件不是json格式",
+          offset: 100,
+        });
         demo.value = "";
       }
     };
     fileReader.readAsText(file.raw);
-    // TODO: 赋值给cvJson
   }
 };
 
@@ -113,17 +137,17 @@ const isJSON = (str: any) => {
   console.log("It is not a string!");
 };
 
-// interface FormData {
-//   name: string;
-//   email: string;
-// }
+interface FormData {
+  name: string;
+  email: string;
+}
 // const formData = reactive<FormData>({
 //   name: "",
 //   email: "",
 // });
 
-const cvResult = ref<string>("");
-let cvJson = reactive({});
+let cvResult = ref("");
+let cvJson = reactive({} as FormData);
 
 // const submitForm = () => {
 //   // 将 formData 转换为 JSON 格式
@@ -148,9 +172,47 @@ let cvJson = reactive({});
 //   });
 // };
 
+const generateCV = () => {
+  if (demo.value.length <= 0) {
+    ElNotification.warning({
+      title: "无法生成",
+      message: "请先填写json信息",
+      offset: 100,
+    });
+    return;
+  }
+  try {
+    cvJson = JSON.parse(demo.value);
+  } catch {
+    ElNotification.error({
+      title: "生成失败",
+      message: "简历信息不是json格式",
+      offset: 100,
+    });
+    return;
+  }
+  if (!cvJson.name || !cvJson.email) {
+    ElNotification.error({
+      title: "生成失败",
+      message: "简历信息不正确",
+      offset: 100,
+    });
+    return;
+  }
+  cvResult.value = `我叫${cvJson.name}, 我的邮箱是${cvJson.email}`;
+  ElNotification.success({
+    title: "生成成功",
+    offset: 100,
+  });
+};
+
 const downloadCV = () => {
   // TODO: 下载简历的逻辑
-  alert("功能开发中...");
+  ElNotification.warning({
+    title: "系统提示",
+    message: "功能开发中",
+    offset: 100,
+  });
 };
 </script>
 
