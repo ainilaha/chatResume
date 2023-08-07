@@ -1,8 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 import requests
 import json
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
@@ -14,6 +16,26 @@ def hello_world():  # put application's code here
             {"role": "assistant", "content": "你现在是一名智能助手,能够以通俗易懂且准确的方式回答人们的问题"},
             {"role": "user",
              "content": "请列举一些关于健身的英文单词，比如说心肺能力Cardiopulmonary capacity，有氧运动	Aerobics 之类的  "}
+        ]
+    })
+    return generate(payload)
+
+
+@app.route('/submit', methods=['POST'])
+@cross_origin()
+def submit_question():
+    data = request.json
+    if data is None:
+        return jsonify({'error': 'No JSON data provided'}), 400
+    print(data)
+    # 在这里进行数据处理或其他逻辑操作
+    # 这只是一个简单的示例，实际上你可以根据需要做更多的事情
+    payload = json.dumps({
+        "messages": [
+            {"role": "user", "content": "请介绍一下你自己"},
+            {"role": "assistant", "content": "你现在是一名智能助手,能够以通俗易懂且准确的方式回答人们的问题"},
+            {"role": "user",
+             "content": data['question']}
         ]
     })
     return generate(payload)
