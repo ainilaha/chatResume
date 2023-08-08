@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, Raw } from "vue";
+import { ref } from "vue";
 let queResult = ref("");
 let loadingStatus = ref(false);
 let question = ref("");

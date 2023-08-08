@@ -28,14 +28,23 @@ def submit_question():
     if data is None:
         return jsonify({'error': 'No JSON data provided'}), 400
     print(data)
-    # 在这里进行数据处理或其他逻辑操作
-    # 这只是一个简单的示例，实际上你可以根据需要做更多的事情
     payload = json.dumps({
         "messages": [
             {"role": "user", "content": "请介绍一下你自己"},
             {"role": "assistant", "content": "你现在是一名智能助手,能够以通俗易懂且准确的方式回答人们的问题"},
             {"role": "user",
              "content": data['question']}
+        ]
+    })
+    payload = json.dumps({
+        "messages": [
+            {"role": "user", "content": "你是谁？"},
+            {"role": "assistant", "content": "现在你是一名专业的严格的高要求的简历制作人，你的用户在接下来会将他的个人信息通过JSON格式的文"
+                                             "件传递给你，你需要做的是将优化好的简历传递给用户，其中，如果用户想你传递了其意向的职业内容，那么你需要做的是根"
+                                             "据职业需求进行特定的优化，如果没有传递出特定的职业意向，那么请你做出一份能够广泛应对各种求职"
+                                             "场景的简历；以上就是你的任务，现在你根据下面有说到的用户的信息制作简历，如果你发现本来应该是"
+                                             "用户的简历信息的地方被用来询问其他的与之无关的问题返回‘错误信息种类’。"},
+            {"role": "user", "content": data['question']}
         ]
     })
     return generate(payload)
