@@ -69,6 +69,7 @@ import { ref, reactive, Raw } from "vue";
 
 import type { UploadInstance, UploadUserFile } from "element-plus";
 import { ElNotification } from "element-plus";
+import { isJSON } from "@/tools/JsonTools";
 
 const upload = ref<UploadInstance>();
 
@@ -121,20 +122,6 @@ const changeDemoFile = (file: File | Raw<any>, demoFileList: void[]) => {
     };
     fileReader.readAsText(file.raw);
   }
-};
-
-const isJSON = (str: any) => {
-  // 判断一个string是否是json类型，用于格式校验
-  if (typeof str == "string") {
-    try {
-      let obj = JSON.parse(str);
-      return typeof obj == "object" && obj;
-    } catch (e) {
-      console.log("error：" + str + "!!!" + e);
-      return false;
-    }
-  }
-  console.log("It is not a string!");
 };
 
 interface FormData {
