@@ -9,6 +9,7 @@ export const isJSON = (str: string) => {
   }
 };
 
+export const isEmptyObj = (obj: any) => Object.keys(obj).length === 0;
 // export const appendNode = (data) => {
 //   const newChild = { id: id++, label: "testtest", children: [] };
 //   if (!data.children) {

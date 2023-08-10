@@ -38,23 +38,41 @@
         @click="submitQue"
         :loading="loadingStatus"
         :disabled="question.length == 0"
-        >提交</el-button
-      >
+        >提交
+      </el-button>
+      <el-button
+        @click="
+          () => {
+            loadingStatus2 = true;
+            downloadPDF(compToDownload).finally(() => {
+              loadingStatus2 = false;
+            });
+          }
+        "
+        :disabled="isEmptyObj(jsonResult)"
+        :loading="loadingStatus2"
+        >下载
+      </el-button>
       <el-button
         @click="
           () => {
             question = '';
+            queResult = '';
+            jsonResult = {};
+            // jsonResult.hasContent = false;
           }
         "
-        >清空</el-button
-      >
+        :disabled="loadingStatus || loadingStatus2"
+        >清空
+      </el-button>
+      <!--      <component :is="PdfDownload" componentToDownload="compToDownload" />-->
     </el-col>
   </div>
-  <div class="m-3">
+  <div class="m-3" ref="compToDownload">
     <el-text style="font-weight: bold; font-size: large">简历预览</el-text>
     <JsonDisplay
       class="mt-3"
-      v-if="jsonResult.hasContent"
+      v-if="!isEmptyObj(jsonResult)"
       :json-data="jsonResult"
     ></JsonDisplay>
     <div v-else class="mv-1">
@@ -64,13 +82,47 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { isJSON } from "@/tools/JsonTools";
+import { ref } from "vue";
+import { isEmptyObj, isJSON } from "@/tools/JsonTools";
 import JsonDisplay from "@/components/JsonDisplay.vue";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import html2canvas from "html2canvas";
+import { ElNotification } from "element-plus";
+import { downloadPDF } from "@/tools/pdfTools";
+import component from "*.vue"; // If you need tables
+const compToDownload = ref(); // Replace with your element ref
 let queResult = ref("");
-let jsonResult = ref({ hasContent: false });
+let jsonResult = ref({});
 let loadingStatus = ref(false);
+let loadingStatus2 = ref(false);
 let question = ref("");
+
+// const downloadPDF = async () => {
+//   try {
+//     loadingStatus2.value = true;
+//     const pdf = new jsPDF();
+//     console.log(compToDownload);
+//     // Convert the element to an image using a library like html2canvas
+//     const canvas = await html2canvas(compToDownload.value);
+//     const imgData = canvas.toDataURL("image/png");
+//
+//     // Add the image to the PDF
+//     pdf.addImage(imgData, "PNG", 0, 0, 250, 250); // Adjust the positioning and size
+//     // pdf.addImage(imgData, "PNG", 100, 10, 190, 250); // Adjust the positioning and size
+//
+//     // Save or download the PDF
+//     pdf.save("downloaded.pdf");
+//     ElNotification.success({
+//       title: "pdf已生成，将自动下载",
+//       offset: 100,
+//     });
+//   } catch (e) {
+//     console.log(e);
+//   } finally {
+//     loadingStatus2.value = false;
+//   }
+// };
 
 const submitQue = () => {
   loadingStatus.value = true;
@@ -94,11 +146,15 @@ const submitQue = () => {
           if (isJSON(str2)) {
             queResult.value = JSON.stringify(JSON.parse(str2), null, 4);
             jsonResult.value = JSON.parse(str2);
-            jsonResult.value.hasContent = true;
+            // jsonResult.value.hasContent = true;
+            ElNotification.success({
+              title: "简历生成成功",
+              offset: 100,
+            });
             // console.log(jsonResult);
           } else {
             queResult.value = str;
-            jsonResult.value = { hasContent: false };
+            jsonResult.value = {};
           }
           console.log(queResult.value);
         });

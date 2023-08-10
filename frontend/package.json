@@ -10,6 +10,10 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "element-plus": "^2.3.8",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.1",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.31",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"

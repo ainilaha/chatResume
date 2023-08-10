@@ -1,18 +1,5 @@
 <template>
   <div>
-    <!--    <form @submit.prevent="submitForm">-->
-    <!--      <label for="name">Name:</label>-->
-    <!--      <input type="text" id="name" v-model="formData.name" required />-->
-
-    <!--      <label for="email">Email:</label>-->
-    <!--      <input type="email" id="email" v-model="formData.email" required />-->
-
-    <!--      <label for="message">Message:</label>-->
-    <!--      <textarea id="message" v-model="formData.message" required></textarea>-->
-
-    <!--      <button type="submit">Submit</button>-->
-    <!--    </form>-->
-
     <el-divider />
 
     <el-row>
@@ -48,19 +35,22 @@
     </el-row>
     <el-divider />
     <el-row>
-      <div>
-        <el-input
-          v-model="cvResult"
-          type="textarea"
-          style="width: 20rem"
-          :autosize="{ minRows: 5, maxRows: 10 }"
-          placeholder="生成的简历会显示在此处"
-          readonly
-        ></el-input>
+      <div v-if="!isEmptyObj(cvResult)" ref="compToDownload">
+        <json-display :json-data="cvResult"></json-display>
+        <!--        <el-input-->
+        <!--          v-model="cvResult"-->
+        <!--          type="textarea"-->
+        <!--          style="width: 20rem"-->
+        <!--          :autosize="{ minRows: 5, maxRows: 10 }"-->
+        <!--          placeholder="生成的简历会显示在此处"-->
+        <!--          readonly-->
+        <!--        ></el-input>-->
       </div>
     </el-row>
     <el-button @click="generateCV" class="mt-1">生成简历</el-button>
-    <el-button @click="downloadCV" class="mt-1">下载简历</el-button>
+    <el-button @click="downloadCV" class="mt-1" :loading="loadingStatus"
+      >下载简历</el-button
+    >
   </div>
 </template>
 
@@ -69,8 +59,12 @@ import { ref, reactive, Raw } from "vue";
 
 import type { UploadInstance, UploadUserFile } from "element-plus";
 import { ElNotification } from "element-plus";
-import { isJSON } from "@/tools/JsonTools";
+import { isEmptyObj, isJSON } from "@/tools/JsonTools";
+import JsonDisplay from "@/components/JsonDisplay.vue";
+import { downloadPDF } from "@/tools/pdfTools";
 
+const compToDownload = ref();
+const loadingStatus = ref(false);
 const upload = ref<UploadInstance>();
 
 let demo = ref("");
@@ -124,17 +118,18 @@ const changeDemoFile = (file: File | Raw<any>, demoFileList: void[]) => {
   }
 };
 
-interface FormData {
-  name: string;
-  email: string;
-}
+// interface FormData {
+//   name: string;
+//   email: string;
+// }
 // const formData = reactive<FormData>({
 //   name: "",
 //   email: "",
 // });
 
-let cvResult = ref("");
-let cvJson = reactive({} as FormData);
+let cvResult = reactive({});
+// let cvJson = reactive({} as FormData);
+let cvJson = reactive({});
 
 // const submitForm = () => {
 //   // 将 formData 转换为 JSON 格式
@@ -178,15 +173,23 @@ const generateCV = () => {
     });
     return;
   }
-  if (!cvJson.name || !cvJson.email) {
-    ElNotification.error({
-      title: "生成失败",
-      message: "简历信息不正确",
-      offset: 100,
-    });
-    return;
+  // cvResult = cvJson;
+  for (let key in cvJson) {
+    cvResult[key] = cvJson[key];
   }
-  cvResult.value = `我叫${cvJson.name}, 我的邮箱是${cvJson.email}`;
+  console.log(cvResult);
+  // cvResult.hasContent = true;
+
+  // if (!cvJson.value.name || !cvJson.value.email) {
+  //   ElNotification.error({
+  //     title: "生成失败",
+  //     message: "简历信息不正确",
+  //     offset: 100,
+  //   });
+  //   return;
+  // }
+  // cvResult.value = `我叫${cvJson.value.name}, 我的邮箱是${cvJson.value.email}`;
+  // cvResult.value = `我叫${cvJson.name}, 我的邮箱是${cvJson.email}`;
   ElNotification.success({
     title: "生成成功",
     offset: 100,
@@ -194,11 +197,9 @@ const generateCV = () => {
 };
 
 const downloadCV = () => {
-  // TODO: 下载简历的逻辑
-  ElNotification.warning({
-    title: "系统提示",
-    message: "功能开发中",
-    offset: 100,
+  loadingStatus.value = true;
+  downloadPDF(compToDownload.value).finally(() => {
+    loadingStatus.value = false;
   });
 };
 </script>
